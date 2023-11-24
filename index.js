@@ -27,7 +27,7 @@ const server = http.createServer((req, res) => {
 					res.end(`Hello, ${value}.`)
 				} else {
 					res.statusCode = 400
-					res.writeHead(200, { 'Content-Type': 'text/plain' })
+					res.writeHead(400, { 'Content-Type': 'text/plain' })
 					res.end('Enter name')
 					res.end()
 				}
