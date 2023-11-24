@@ -18,7 +18,7 @@ const server = http.createServer((req, res) => {
 	for (let [key, value] of searchParams.entries()) {
 		switch (key) {
 			case 'users':
-				res.writeHead(200, { 'Content-Type': 'text/plain' })
+				res.writeHead(200, { 'Content-Type': 'application/json' })
 				res.end(getUsers())
 				break
 			case 'hello':
