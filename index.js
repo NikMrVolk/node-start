@@ -1,45 +1,37 @@
-const http = require('http')
 require('dotenv').config()
-const getUsers = require('./modules/getUsers')
+const express = require('express')
+const mongoose = require('mongoose')
+const cors = require('cors')
+const login = require('./middlewares/logMiddleware')
+const corsOptions = require('./utils/corsOptions')
+const router = require('./routes/index')
+const errorHandler = require('./middlewares/ErrorHandlingMiddleware')
 
-const PORT = process.env.PORT || 3003
+const PORT = process.env.PORT || 3005
+const URL = process.env.URL
 
-const server = http.createServer((req, res) => {
-	const url = new URL(req.url, 'http://127.0.0.1')
-	const searchParams = url.searchParams
+const app = express()
 
-	if (!searchParams.toString().length) {
-		res.writeHead(200, { 'Content-Type': 'text/plain' })
-		res.end('Hello, World!')
+app.use(cors(corsOptions))
+app.use(express.json())
+app.use(login())
 
-		return
-	}
-
-	for (let [key, value] of searchParams.entries()) {
-		switch (key) {
-			case 'users':
-				res.writeHead(200, { 'Content-Type': 'application/json' })
-				res.end(getUsers())
-				break
-			case 'hello':
-				if (value) {
-					res.writeHead(200, { 'Content-Type': 'text/plain' })
-					res.end(`Hello, ${value}.`)
-				} else {
-					res.statusCode = 400
-					res.writeHead(400, { 'Content-Type': 'text/plain' })
-					res.end('Enter name')
-					res.end()
-				}
-				break
-			default:
-				res.writeHead(500, { 'Content-Type': 'text/plain' })
-				res.end('Not Found')
-				break
-		}
-	}
+app.use('/api', router)
+app.use("*", (req, res, next) => {
+	res.status(404).json('non-existent route')
 })
 
-server.listen(PORT, () => {
-	console.log(`Start on port ${PORT}`)
-})
+// End!
+app.use(errorHandler)
+//
+
+const start = async () => {
+	try {
+		await mongoose.connect(URL)
+		app.listen(PORT, () => console.log(`App work on port ${PORT}`))
+	} catch (e) {
+		console.log(e)
+	}
+}
+
+start()
