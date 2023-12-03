@@ -17,9 +17,9 @@ app.use(express.json())
 app.use(login())
 
 app.use('/api', router)
-app.use("*", (req, res, next) => {
-	res.status(404).json('non-existent route')
-})
+// app.use("*", (req, res, next) => {
+// 	res.status(404).json('non-existent route')
+// })
 
 // End!
 app.use(errorHandler)

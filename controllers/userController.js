@@ -1,6 +1,6 @@
 const ApiError = require('../error/ApiError')
 const Book = require('../models/Book')
-const User = require('../models/user')
+const User = require('../models/User')
 const bcrypt = require('bcryptjs')
 
 class UserController {
@@ -23,10 +23,14 @@ class UserController {
 	}
 	async addUser(req, res, next) {
 		try {
-			const { username, password } = req.body
+			const { username, password, firstName, lastName } = req.body
+
+			if(firstName.length < 3 || lastName.length < 3) {
+				return next(ApiError.badRequest('FirstName or LastName must be more than 2 symbols'))
+			}
 
 			if(username.length < 5 || password.length < 5) {
-				next(ApiError.badRequest('Username or password must be more than 4 symbols'))
+				return next(ApiError.badRequest('Username or password must be more than 4 symbols'))
 			}
 
 			const candidate = await User.findOne({ username })
@@ -35,7 +39,7 @@ class UserController {
 			}
 
 			const hashPassword = bcrypt.hashSync(password, 7)
-			const user = new User({ username, password: hashPassword })
+			const user = new User({ username, password: hashPassword, firstName, lastName })
 
 			await user.save()
 			res.status(200).json({ message: 'User successfully added' })
@@ -43,7 +47,7 @@ class UserController {
 			return next(ApiError.internal('Add user error', e))
 		}
 	}
-	async updateUsername(req, res, next) {
+	async updateMail(req, res, next) {
 		try {
 			const { id } = req.params
 			const { username } = req.body
@@ -78,7 +82,7 @@ class UserController {
 			}
 
 			if(password.length < 5) {
-				next(ApiError.badRequest('P, nextassword must be more than 4 symbols'))
+				next(ApiError.badRequest('Next password must be more than 4 symbols'))
 			}
 
 			const hashPassword = bcrypt.hashSync(password, 7)
@@ -87,6 +91,23 @@ class UserController {
 			res.status(200).json({ message: 'Password successfully updated' })
 		} catch (e) {
 			return next(ApiError.internal('Update password error', e))
+		}
+	}
+	async updateUserName(req, res, next) {
+		try {
+			const { id } = req.params
+			const { firstName, lastName } = req.body
+
+			const currUser = await User.findById(id)
+
+			if (currUser.firstName === firstName && currUser.lastName === lastName) {
+				return next(ApiError.badRequest('It is your old name and last name'))
+			}
+
+			await User.findOneAndUpdate(currUser._id, { firstName, lastName })
+			res.status(200).json({ message: 'User name successfully updated' })
+		} catch (e) {
+			return next(ApiError.internal('Update user data error', e))
 		}
 	}
 	async removeUser(req, res, next) {
